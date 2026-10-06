@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <title>Nickel Diffusion · light</title>
+  <desc>Broad softly curved mineral bands in neutral nickel tones. Original abstract background for TRON Mineral.</desc>
+  <defs>
+    <linearGradient id="nickel" x1=".08" y1="0" x2=".88" y2="1">
+      <stop stop-color="#DDD6CD"/><stop offset=".45" stop-color="#F4F4F4"/><stop offset="1" stop-color="#DDD6CD"/>
+    </linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#DDD6CD" stop-opacity=".23"/><stop offset=".6" stop-color="#787776" stop-opacity=".12"/><stop offset="1" stop-color="#DDD6CD" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="wash" cx=".5" cy=".37" r=".78">
+      <stop stop-color="#FFFFFF" stop-opacity=".22"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient></defs>
+  <rect width="1600" height="1200" fill="url(#nickel)"/><path d="M -250 -190 C 250 -270, 420 -10, 900 -175 S 1370 -270, 1850 -80" fill="none" stroke="url(#band)" stroke-width="105"/><path d="M -250 70 C 250 -10, 420 250, 900 85 S 1370 -10, 1850 180" fill="none" stroke="url(#band)" stroke-width="160"/><path d="M -250 410 C 250 330, 420 590, 900 425 S 1370 330, 1850 520" fill="none" stroke="url(#band)" stroke-width="190"/><path d="M -250 780 C 250 700, 420 960, 900 795 S 1370 700, 1850 890" fill="none" stroke="url(#band)" stroke-width="170"/><path d="M -250 1090 C 250 1010, 420 1270, 900 1105 S 1370 1010, 1850 1200" fill="none" stroke="url(#band)" stroke-width="145"/><rect width="1600" height="1200" fill="url(#wash)"/>
+</svg>

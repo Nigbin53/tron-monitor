@@ -1,0 +1,36 @@
+/* Мини-приложение: макет телефона растягивается на весь экран Telegram */
+html,body{margin:0;height:100%;background:var(--canvas,#fef7ee)}
+body{overscroll-behavior:none}
+#root{height:100%}
+.phone{width:100%;max-width:560px;height:100vh;height:100dvh;margin:0 auto;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column}
+.phone-content{flex:1;min-height:0;height:auto;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:18px 18px 28px}
+.phone-content::-webkit-scrollbar{width:0}
+.phone-nav{position:relative;flex:none;height:auto;padding:10px 13px calc(10px + env(safe-area-inset-bottom))}
+.phone-nav:after{display:none}
+.phone-toast{bottom:calc(84px + env(safe-area-inset-bottom));z-index:5}
+.phone button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* Кнопки, которые раньше были украшением, теперь работают */
+button.round-control{border:0;cursor:pointer;color:inherit}
+button.round-control .line-icon{width:18px;height:18px}
+.as-link{display:block;background:none;border:0;padding:0;text-align:left;color:inherit;width:100%}
+.tiny-icon .line-icon{width:15px;height:15px}
+
+.signal-dot.off{background:#c0705f!important}
+.recipient-row.inactive{opacity:.55}
+.wallet-address+.wallet-address{margin-top:8px}
+
+.phone-ghost{display:block;width:100%;margin-top:12px;padding:12px;border-radius:16px;border:1px solid var(--theme-border,#2a2a2a18);background:transparent;color:var(--text-primary,#2a2a2a);font-size:12px!important}
+
+.app-empty{padding:22px 16px;border:1px dashed var(--theme-border,#2a2a2a24);border-radius:20px;text-align:center;font-size:12px;color:var(--text-secondary,#787776);margin-top:6px}
+
+.add-form{margin-top:14px;padding:16px;border-radius:20px;background:var(--surface,#fff9f2);border:1px solid var(--theme-border,#2a2a2a18)}
+.add-form label{display:block;font-size:10px;letter-spacing:.08em;color:var(--text-secondary,#787776);margin-bottom:8px;text-transform:uppercase}
+.add-form input{box-sizing:border-box;width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--theme-border,#2a2a2a24);background:transparent;color:var(--text-primary,#2a2a2a);font:13px var(--font-mono,Menlo,monospace);outline:none}
+.add-form input:focus{border-color:#a89471}
+.add-form>div{display:flex;gap:8px;margin-top:4px}
+.add-form>div>*{flex:1;margin-top:10px}
+
+.app-splash{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:0 28px;color:var(--text-secondary,#787776);font-size:13px}
+.app-splash .coin-glyph{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:24px;background:#2a2a2a;color:#eeddc4}
+.app-splash .phone-primary{width:auto;padding:12px 26px}

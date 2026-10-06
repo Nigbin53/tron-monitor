@@ -1,0 +1,34 @@
+/* Mineral UI kit v2.1 — palette from the supplied Avon reference. */
+:root {
+  --graphite: #2A2A2A;
+  --shell-dark: #4D4A44;
+  --shell-mid: #6C6459;
+  --shell-light: #EEDDC4;
+  --nickel-mid: #787776;
+  --nickel-light: #DDD6CD;
+  --mineral: #DDD5CA;
+  --ivory: #FEF7EE;
+  --porcelain: #F4F4F4;
+  --white: #FFFFFF;
+  --ink: #2A2A2A;
+  --muted: #787776;
+  --stroke: #2A2A2A18;
+  --shell-gradient: linear-gradient(135deg, #4D4A44 0%, #6C6459 25%, #EEDDC4 50%, #6C6459 75%, #4D4A44 100%);
+  --nickel-gradient: linear-gradient(135deg, #2A2A2A 0%, #787776 25%, #DDD6CD 50%, #787776 75%, #2A2A2A 100%);
+  --ivory-gradient: linear-gradient(135deg, #DDD5CA 0%, #FEF7EE 25%, #FFFFFF 50%, #FEF7EE 75%, #DDD5CA 100%);
+  --porcelain-gradient: linear-gradient(135deg, #DDDDDD 0%, #F4F4F4 25%, #FFFFFF 50%, #F4F4F4 75%, #DDDDDD 100%);
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: Menlo, Consolas, monospace;
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-hero: 26px;
+  --space-unit: 4px;
+  --shadow-surface: 0 12px 30px #2A2A2A0D;
+  --incoming: #667E6A;
+  --outgoing: #946E60;
+}
+.phone { font-family: var(--font-sans); }
+
+/* Functional theme tokens. Set data-theme on the root element. */
+:root { --canvas:#F4F1EC; --surface:#FFF9F2; --text-primary:#2A2A2A; --text-secondary:#787776; --theme-border:#2A2A2A18; --control-fill:#2A2A2A; --control-text:#FEF7EE; }
+:root[data-theme="dark"] { --canvas:#0E0D0C; --surface:#363431; --surface-solid:#403D38; --surface-soft:#24221F; --text-primary:#FAF6EF; --text-secondary:#C7BEB1; --theme-border:#EAD7B436; --accent:#C29A60; --control-fill:#C29A60; --control-text:#17120C; --ink:#FAF6EF; --muted:#C7BEB1; --stroke:#EAD7B436; --incoming:#A4B8A5; --outgoing:#D0A190; --surface-gradient:linear-gradient(145deg,#403D38,#302E2B); }

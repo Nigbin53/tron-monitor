@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <title>Soft Porcelain · dark</title>
+  <desc>A quiet untextured surface with a broad diffuse glow. Original abstract background for TRON Mineral.</desc>
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2=".1" y2="1">
+      <stop stop-color="#2A2A2A"/><stop offset=".64" stop-color="#2A2A2A"/><stop offset="1" stop-color="#2A2A2A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".75" cy=".22" r=".84">
+      <stop stop-color="#DDD6CD" stop-opacity=".065"/><stop offset=".74" stop-color="#DDD6CD" stop-opacity=".01"/><stop offset="1" stop-color="#DDD6CD" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="edge" cx="0" cy="1" r=".88">
+      <stop stop-color="#4D4A44" stop-opacity=".12"/><stop offset="1" stop-color="#4D4A44" stop-opacity="0"/>
+    </radialGradient></defs>
+  <rect width="1600" height="1200" fill="url(#base)"/><rect width="1600" height="1200" fill="url(#glow)"/><rect width="1600" height="1200" fill="url(#edge)"/>
+</svg>
