@@ -451,3 +451,17 @@ button.recipient-row>div>span{display:block;white-space:nowrap;overflow:hidden;t
 /* фонов 5 — в один ряд */
 .compact .background-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .compact .background-thumb{height:62px}
+
+/* ===== Фоны Орбита / Затмение / Звёзды: без вуали, карточки — матовое стекло, чтобы узор просвечивал ===== */
+:root[data-background=orbit],:root[data-background=eclipse],:root[data-background=stardust]{--phone-wash:transparent}
+:is([data-background=orbit],[data-background=eclipse],[data-background=stardust]) :is(.history-card,.notification-card,.threshold-card,.recipients-card,.address-card,.phone-appearance,.bot-card,.add-form,.withdrawal-summary,.withdrawal-alert,.app-empty){
+  background:#fffaf3b3!important;-webkit-backdrop-filter:blur(18px) saturate(1.15);backdrop-filter:blur(18px) saturate(1.15)}
+:root[data-theme=dark]:is([data-background=orbit],[data-background=eclipse],[data-background=stardust]) :is(.history-card,.notification-card,.threshold-card,.recipients-card,.address-card,.phone-appearance,.bot-card,.add-form,.withdrawal-alert,.app-empty){
+  background:#26241fb0!important}
+/* строка истории: адрес сокращается, время видно всегда */
+.h-text small{display:flex;gap:4px;min-width:0}
+.h-who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-time{flex:none}
+.h-text small{font-size:13px}
+
+.background-option[data-appearance-background=orbit] .background-thumb,.background-option[data-appearance-background=eclipse] .background-thumb,.background-option[data-appearance-background=stardust] .background-thumb{background-size:260%;background-position:85% 12%}
