@@ -34,3 +34,420 @@ button.round-control .line-icon{width:18px;height:18px}
 .app-splash{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:0 28px;color:var(--text-secondary,#787776);font-size:13px}
 .app-splash .coin-glyph{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:24px;background:#2a2a2a;color:#eeddc4}
 .app-splash .phone-primary{width:auto;padding:12px 26px}
+
+/* ===================================================================
+   iOS-слой (iPhone 15 Pro, 393×852 pt). Шкала Apple HIG:
+   Large Title 34 · Title3 20 · Body/Headline 17 · Subhead 15 · Footnote 13 · Caption 12/11.
+   Поля 16, ритм 4/8, кнопки ≥ 44, текст ≥ 4.5:1.
+   =================================================================== */
+:root{--text-secondary:#66625b;--ios-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",system-ui,"Helvetica Neue",Arial,sans-serif}
+html{-webkit-text-size-adjust:100%}
+.phone{font-family:var(--ios-font);font-size:17px;line-height:1.3;letter-spacing:-.01em;touch-action:manipulation}
+.phone button,.phone input{letter-spacing:inherit}
+.phone button{transition:opacity .12s}
+.phone button:active{opacity:.55}
+.phone-content{padding:16px 16px 32px}
+
+/* вторичный текст — один цвет с нормальным контрастом */
+.phone-eyebrow,.wallet-address small,.balance-chart small,.phone-section-heading>span,.mini-transaction>div>span,.day-label,.transaction-top time,.transaction-amount small,.transaction-address,.transaction-bottom,.transaction-bottom small,.address-card p,.address-card-bottom>span,.address-card-bottom small,.withdrawal-alert p,.range-labels,.threshold-value>small,.recipient-row div>span,.bot-card div>span,.settings-hint,.tiny-icon,.phone-tab,.app-empty{color:var(--text-secondary)}
+
+/* цифры в списках не «прыгают» */
+.mini-amount,.transaction-amount,.transaction-bottom strong,.address-card-bottom strong,.withdrawal-alert strong,.transaction-top time,.mini-transaction>div>span{font-variant-numeric:tabular-nums}
+
+/* заголовки */
+.app-heading{margin-bottom:20px;min-height:44px}
+.phone-eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em}
+.app-heading h1{font-size:34px;font-weight:650;letter-spacing:-.6px;line-height:1.12;margin-top:4px}
+.protocol-pill{font-size:13px;font-weight:500;padding:6px 12px;border-radius:15px}
+.round-control,button.round-control{width:44px;height:44px}
+.round-control .line-icon,button.round-control .line-icon{width:22px;height:22px}
+.phone-section-heading,.phone-appearance-heading{margin:28px 2px 10px;align-items:baseline}
+.home .phone-section-heading{margin-top:24px}
+.phone-section-heading h2,.phone-appearance-heading h2{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.phone-section-heading>span,.phone-appearance-heading>span{font-size:15px}
+
+/* карточка баланса */
+.balance-card{height:auto;border-radius:24px;padding:20px 20px 16px}
+.balance-top{font-size:15px;gap:10px}
+.coin-glyph{width:30px;height:30px;font-size:16px}
+.balance-network{font-size:12px;font-weight:600;letter-spacing:.12em}
+.balance-number{font-size:52px;letter-spacing:-2.4px;margin-top:28px}
+.balance-number>span{font-size:32px}
+.balance-units{font-size:15px;font-weight:600;margin-top:8px}
+.balance-units span{font-size:15px;font-weight:400;margin-left:14px}
+.balance-caption{font-size:13px;margin-top:20px;padding-top:12px}
+.balance-caption>span:last-child{font-size:13px}
+.signal-dot{width:7px;height:7px}
+
+.wallet-address{min-height:64px;padding:12px 4px;font-size:17px;font-weight:500}
+.wallet-address small{font-size:12px;font-weight:600;letter-spacing:.08em;margin-bottom:3px}
+.wallet-address .line-icon{width:22px;height:22px}
+.balance-chart{height:auto;margin:16px 2px 0}
+.balance-chart .phone-eyebrow{font-size:12px}
+.balance-chart small{font-size:13px}
+.sparkline{height:56px}
+.chart-line{stroke-width:2}
+
+/* короткий список операций */
+.mini-transactions{border-radius:20px;padding:0 16px}
+.mini-transaction{height:auto;min-height:64px;gap:12px;padding:10px 0}
+.direction{width:36px;height:36px}
+.direction .line-icon{width:18px;height:18px}
+.mini-transaction strong{font-size:17px;font-weight:600;gap:6px}
+.mini-transaction>div>span{font-size:15px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-amount{font-size:17px;font-weight:600;letter-spacing:-.2px}
+.watch-mini .line-icon{width:16px;height:16px}
+
+/* нижняя панель: 49 pt + домашняя полоска */
+.phone-nav{min-height:0;padding:6px 8px calc(4px + env(safe-area-inset-bottom))}
+.phone-tab{min-height:49px;justify-content:center;gap:3px}
+.phone-tab .line-icon{width:24px;height:24px}
+.phone-tab>span{font-size:11px;font-weight:500;letter-spacing:0}
+.phone-tab.active .line-icon{width:32px;height:32px;padding:4px;border-radius:9px;margin:-4px 0}
+.phone-tab.active>span{font-weight:600}
+.phone-toast{font-size:15px;border-radius:14px;padding:14px 16px;left:16px;right:16px}
+
+/* лента */
+.phone-filters{border-radius:12px;padding:3px;margin-bottom:8px}
+.phone-filters button{min-height:40px;padding:8px 6px;border-radius:9px;font-size:15px;font-weight:500}
+.phone-filters button.selected{font-weight:600}
+.day-label{font-size:13px;font-weight:600;letter-spacing:.06em;margin:24px 4px 10px}
+.day-label>span{font-size:13px;font-weight:500}
+.transaction-feed{gap:12px}
+.transaction-feed>.day-label:first-child{margin-top:16px}
+.transaction-card{border-radius:20px;padding:16px}
+.transaction-top{font-size:15px;font-weight:500;gap:10px}
+.transaction-top .direction{width:30px;height:30px}
+.transaction-top .direction .line-icon{width:16px;height:16px}
+.transaction-top time{font-size:15px}
+.transaction-amount{font-size:34px;letter-spacing:-1px;margin:10px 0 0}
+.transaction-amount small{font-size:15px;margin-left:6px}
+.transaction-address{font-size:15px;min-height:36px;display:flex!important;align-items:center}
+.transaction-bottom{margin-top:8px;padding-top:12px;font-size:13px;align-items:baseline}
+.transaction-bottom strong{font-size:15px;font-weight:600}
+.transaction-bottom small{font-size:13px}
+.watch-label{font-size:13px;font-weight:500;gap:6px;margin-top:2px}
+.watch-label .line-icon{width:16px;height:16px}
+.scan-button{min-height:44px;margin-top:14px;border-radius:12px;font-size:15px!important;font-weight:600;gap:8px}
+.scan-button .line-icon{width:16px;height:16px}
+
+/* адреса */
+.withdrawal-summary{height:auto;border-radius:24px;padding:20px}
+.withdrawal-summary>.phone-eyebrow{font-size:12px}
+.withdrawal-total{font-size:44px;margin-top:10px}
+.withdrawal-total>span{font-size:28px}
+.withdrawal-total>small{font-size:15px}
+.withdrawal-summary>.sparkline{height:56px;margin-top:14px}
+.summary-bottom{font-size:13px;margin-top:10px}
+.summary-bottom .line-icon{width:18px;height:18px}
+.address-list{gap:12px}
+.address-card{padding:16px;border-radius:20px}
+.address-card-top{gap:12px}
+.address-monogram{width:40px;height:40px;border-radius:12px;font-size:15px;font-weight:600}
+.address-card h2{font-size:17px;font-weight:600}
+.address-card p{font-size:13px;margin-top:3px}
+.tiny-icon{width:44px;height:44px;margin:-10px -12px -10px auto;display:grid;place-items:center;padding:0}
+.tiny-icon .line-icon{width:18px;height:18px}
+.address-card-bottom{margin-top:14px;padding-top:12px}
+.address-card-bottom>span{font-size:13px}
+.address-card-bottom strong{font-size:22px;letter-spacing:-.5px}
+.address-card-bottom small{font-size:13px}
+.withdrawal-alert{margin-top:16px;padding:14px 16px;border-radius:18px;gap:14px}
+.withdrawal-alert>.line-icon{width:28px;height:28px}
+.withdrawal-alert div>span{font-size:13px;font-weight:500}
+.withdrawal-alert strong{font-size:17px;font-weight:600}
+.withdrawal-alert strong small{font-size:13px}
+.withdrawal-alert p{font-size:13px}
+
+/* кнопки и поля */
+.phone-primary{min-height:50px;margin-top:16px;padding:12px 16px;border-radius:14px;font-size:17px!important;font-weight:600}
+.phone-primary>.line-icon{width:20px;height:20px}
+.phone-ghost{min-height:50px;margin-top:12px;padding:12px 16px;border-radius:14px;font-size:17px!important;font-weight:500}
+.app-empty{font-size:15px;padding:24px 16px;border-radius:20px}
+.add-form{margin-top:16px;padding:16px;border-radius:20px}
+.add-form label{font-size:13px;font-weight:600;letter-spacing:.06em}
+.add-form input{min-height:48px;font-size:17px;padding:12px 14px;border-radius:12px}
+.add-form>div>*{margin-top:12px}
+.app-splash{font-size:17px;line-height:1.4}
+.app-splash .coin-glyph{width:60px;height:60px;border-radius:18px;font-size:28px}
+
+/* настройки */
+.settings .phone-section-heading:first-of-type,.phone-appearance-heading{margin-top:4px}
+.phone-appearance{padding:16px;border-radius:20px;margin-bottom:0}
+.compact .appearance-label{font-size:13px;font-weight:600;margin-bottom:8px}
+.compact .theme-picker{border-radius:12px;padding:3px}
+.compact .theme-picker button{min-height:40px;font-size:15px;font-weight:500;border-radius:9px}
+.compact .theme-picker button.selected{font-weight:600}
+.compact .background-label{margin-top:16px}
+.compact .background-thumb{height:56px;border-radius:12px}
+.compact .background-name{font-size:12px;font-weight:500}
+.compact .background-check{width:18px;height:18px;font-size:10px}
+.threshold-card{padding:20px;border-radius:20px}
+.threshold-card>.phone-eyebrow{font-size:12px}
+.threshold-value{font-size:48px;margin:6px 0 18px}
+.threshold-value>small{font-size:15px}
+.phone input[type=range]{height:4px}
+.phone input[type=range]::-webkit-slider-thumb{width:28px;height:28px;border-width:0;background:#fff;box-shadow:0 1px 1px #0000000f,0 3px 8px #00000026,0 0 0 .5px #0000000a}
+.phone input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;background:#fff;box-shadow:0 3px 8px #00000026}
+.range-labels{font-size:13px;margin-top:14px}
+.notification-card{border-radius:20px;padding:0 16px}
+.toggle-row{height:auto;min-height:52px;font-size:17px;gap:12px}
+.toggle-row input{width:51px;height:31px}
+.switch-track{width:51px;height:31px;padding:2px;flex:none}
+.switch-track:after{width:27px;height:27px;box-shadow:0 3px 8px #00000026,0 1px 1px #00000010}
+.toggle-row input:checked+.switch-track:after{transform:translateX(20px)}
+.recipients-card{border-radius:20px;padding:0 16px}
+.recipient-row{min-height:64px;gap:12px}
+.recipient-avatar{width:40px;height:40px;font-size:15px;font-weight:600}
+.recipient-row strong{font-size:17px;font-weight:600}
+.recipient-row div>span{font-size:15px;margin-top:1px}
+.recipient-status{font-size:13px;font-weight:500}
+.add-recipient{min-height:52px;padding:12px 0;font-size:17px!important;gap:10px}
+.add-recipient>.line-icon{width:20px;height:20px}
+.bot-card{margin-top:24px;padding:14px 16px;border-radius:20px;gap:12px}
+.bot-icon{width:36px;height:36px;border-radius:11px}
+.bot-icon>.line-icon{width:20px;height:20px}
+.bot-card strong{font-size:17px}
+.bot-card div>span{font-size:13px;margin-top:2px}
+.bot-card>.signal-dot{width:8px;height:8px}
+.settings-hint{font-size:13px;line-height:1.4;margin:10px 4px 0!important;text-align:left}
+.cents{opacity:.78}.sign{opacity:.85}
+.transaction-address{min-height:44px}
+.address-monogram{color:#5a5248}
+.phone-section-heading,.phone-appearance-heading{margin-inline:0}.wallet-address{padding-inline:0}.day-label{margin-inline:0}
+.phone input[type=range]::-webkit-slider-thumb{background:#fff!important;border:0!important}.phone input[type=range]::-moz-range-thumb{background:#fff!important;border:0!important}
+
+/* ===== Пополнения и выводы различаются цветом ===== */
+:root{--in:#1d7a45;--in-bg:#1d7a451f;--out:#b23f2a;--out-bg:#b23f2a1c}
+:root[data-theme=dark]{--in:#5fd393;--in-bg:#5fd3932b;--out:#ff8a73;--out-bg:#ff8a732b}
+.phone .direction.in,:root[data-theme=dark] .phone .direction.in{color:var(--in);background:var(--in-bg)}
+.phone .direction.out,:root[data-theme=dark] .phone .direction.out{color:var(--out);background:var(--out-bg)}
+.direction .line-icon{stroke-width:2.2}
+.mini-amount.in,[data-direction=in] .transaction-amount{color:var(--in)}
+.mini-amount.out,[data-direction=out] .transaction-amount{color:var(--out)}
+.mini-amount .sign,.transaction-amount .sign{opacity:1;font-weight:600}
+[data-direction=in] .transaction-top>span:not(.direction){color:var(--in);font-weight:600}
+[data-direction=out] .transaction-top>span:not(.direction){color:var(--out);font-weight:600}
+[data-direction] .transaction-amount small{color:var(--text-secondary)}
+.transaction-card{position:relative;overflow:hidden}
+.transaction-card:before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:4px;border-radius:0 4px 4px 0}
+[data-direction=in].transaction-card:before{background:var(--in)}
+[data-direction=out].transaction-card:before{background:var(--out)}
+.withdrawal-alert strong{color:var(--out)!important}
+.phone-filters [data-filter=in].selected{background:var(--in)!important;color:#fff!important}
+.phone-filters [data-filter=out].selected{background:var(--out)!important;color:#fff!important}
+:root[data-theme=dark] .phone-filters [data-filter=in].selected,:root[data-theme=dark] .phone-filters [data-filter=out].selected{color:#171512!important}
+.mini-amount .cents,.transaction-amount .cents{opacity:.9}.withdrawal-alert strong .sign{opacity:1}
+.home .balance-card+.phone-section-heading{margin-top:28px}
+
+
+/* ===== Фоны под iPhone: вертикальные обои 393×852, заливка слабее, чтобы фон было видно ===== */
+:root{--phone-wash:#fef7ee80}
+:root[data-theme=dark]{--phone-wash:#0a090833}
+.phone{background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important}
+
+/* ===== История: карточка в стиле «History · View all» ===== */
+.history-card{margin-top:24px;padding:6px 16px 8px;border-radius:22px;background:var(--surface,#fff9f2);border:1px solid var(--theme-border,#2a2a2a14);box-shadow:0 10px 30px #2a2a2a0f}
+:root[data-theme=dark] .history-card{background:linear-gradient(180deg,#2a2826f2,#1d1c1af2);border-color:#ffffff12;box-shadow:0 14px 34px #00000059}
+.history-head{display:flex;align-items:center;justify-content:space-between;min-height:52px}
+.history-head h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-.4px;color:var(--text-primary)}
+.history-all{border:0;background:none;padding:12px 0 12px 12px;margin-right:-2px;color:var(--text-secondary);font-size:17px!important;font-weight:400}
+.history-meta{font-size:15px;color:var(--text-secondary)}
+.history-empty{margin:4px 0 14px;font-size:15px;color:var(--text-secondary)}
+.history-feed .history-card:first-child{margin-top:8px}
+.history-feed .history-card{margin-top:16px}
+
+.h-item+.h-item{border-top:1px solid var(--theme-border,#2a2a2a10)}
+:root[data-theme=dark] .h-item+.h-item{border-top-color:#ffffff0d}
+.h-row{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:10px 0;border:0;background:none;color:inherit;text-align:left}
+.h-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.h-text strong{font-size:17px;font-weight:500;color:var(--text-primary);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.h-text small{font-size:15px;color:var(--text-secondary);opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.h-flag{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;border-radius:7px;background:#c29a6026;color:#8a6a3c}
+:root[data-theme=dark] .h-flag{background:#eeddc41f;color:#eeddc4}
+.h-amt{flex:none;font-size:17px;font-weight:500;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+.h-amt.in{color:var(--in)}.h-amt.out{color:var(--out)}
+.h-amt .sign{opacity:1;font-weight:500;margin-right:.12em}
+
+/* круглый значок — графитовая «монета» с золотистым ободком, как ₮ на карточке баланса */
+.h-coin{flex:none;position:relative;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 26%,#5b554c 0%,#34322e 46%,#1c1b19 100%);
+  box-shadow:inset 0 0 0 1px #eeddc438,inset 0 0 0 4px #00000033,inset 0 0 0 5px #eeddc414,0 4px 10px #2a2a2a26}
+.h-coin:after{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(150deg,#ffffff24 0%,transparent 42%);pointer-events:none}
+.h-coin .line-icon{width:20px;height:20px;stroke-width:2.1}
+.h-coin.in{color:#7fdca5}.h-coin.out{color:#ff9a85}.h-coin.flag{color:#eeddc4}
+:root[data-theme=dark] .h-coin{box-shadow:inset 0 0 0 1px #eeddc440,inset 0 0 0 4px #00000040,inset 0 0 0 5px #eeddc414,0 4px 12px #00000066}
+
+.h-more{padding:2px 0 14px 60px}
+.h-more>div{display:flex;align-items:center;justify-content:space-between;min-height:40px;font-size:15px;color:var(--text-secondary)}
+.h-more strong{font-size:15px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.h-more strong small{font-size:13px;font-weight:400;color:var(--text-secondary)}
+.h-copy{display:inline-flex;align-items:center;gap:8px;min-height:40px;border:0;background:none;padding:0;color:var(--text-primary);font-size:15px!important;font-weight:500}
+.h-copy .line-icon{width:16px;height:16px;color:var(--text-secondary)}
+.h-more .scan-button{margin-top:8px}
+.h-item.open .h-row{padding-bottom:4px}
+.h-text small{opacity:1}
+:root[data-theme=dark] .h-text small{opacity:.85}
+.h-flag{color:#6e5229}
+.h-amt .cents{opacity:.9}
+.h-more strong,.h-more span{white-space:nowrap}
+
+/* ===== Статистика выводов: компоновка как на референсе ===== */
+.wk-card{position:relative;overflow:hidden;margin:0 0 16px;padding:16px 16px 12px;border-radius:24px;color:#fef7ee;
+  background:radial-gradient(ellipse at 110% -10%,#eeddc433 0%,transparent 55%),linear-gradient(160deg,#2f2d2a 0%,#222120 60%,#1a1918 100%);
+  box-shadow:0 12px 26px #2a2a2a22;border:1px solid #ffffff10}
+:root[data-theme=dark] .wk-card{box-shadow:0 12px 30px #00000066;border-color:#eeddc41f}
+.wk-top{display:flex;align-items:center;gap:10px}
+.wk-icon{width:32px;height:32px;flex:none;border-radius:50%;display:grid;place-items:center;color:#ff9a85;
+  background:radial-gradient(circle at 32% 26%,#5b554c,#34322e 46%,#1c1b19);box-shadow:inset 0 0 0 1px #eeddc438,inset 0 0 0 3px #00000033}
+.wk-icon .line-icon{width:16px;height:16px;stroke-width:2.2}
+.wk-top h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.2px;color:#e2dacd}
+.wk-mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:12px}
+.wk-mid>div:first-child{min-width:0}
+.wk-total{font-size:32px;font-weight:300;letter-spacing:-1.2px;line-height:1.05;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wk-total .cents{font-size:.6em}
+.wk-total small{font-size:12px;font-weight:500;letter-spacing:.04em;margin-left:6px;color:#c9c1b5}
+.wk-delta{display:block;margin-top:4px;font-size:13px;color:#c9c1b5;white-space:nowrap}
+.wk-delta b{font-weight:600}
+.wk-delta.up b{color:#ff9a85}.wk-delta.down b{color:#7fdca5}
+.wk-chips{display:flex;flex-direction:column;gap:4px;flex:none}
+.wk-chips button{min-height:28px;padding:4px 10px;border:0;border-radius:10px;background:#ffffff0f;color:#c9c1b5;font-size:12px!important;font-weight:600;white-space:nowrap}
+.wk-chips button.on{background:linear-gradient(180deg,#f4e6cc,#d9b984);color:#2a2a2a}
+
+.wk-chart{display:flex;gap:6px;margin-top:30px;height:150px}
+.wk-axis{position:relative;width:28px;flex:none;margin-bottom:20px}
+.wk-axis span{position:absolute;right:0;transform:translateY(50%);font-size:11px;color:#a59d91;font-variant-numeric:tabular-nums}
+.wk-plot{position:relative;flex:1;min-width:0}
+.wk-area{position:absolute;left:0;right:0;top:0;bottom:20px;pointer-events:none}
+.wk-grid,.wk-line{position:absolute;left:0;right:0;height:0}
+.wk-grid{border-top:1px solid #ffffff0d}.wk-grid.base{border-top-color:#ffffff1f}
+.wk-line{border-top:1px dashed #eeddc466;z-index:1;transition:bottom .25s ease}
+.wk-bars{position:absolute;inset:0;display:flex;gap:6px}
+.q .wk-bars{gap:3px}
+.wk-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0;color:inherit}
+.wk-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;min-height:0}
+.wk-bar{position:relative;width:100%;max-width:30px;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,#ffffff1f,#ffffff0c);transition:height .3s ease,background .2s}
+.q .wk-bar{border-radius:5px 5px 2px 2px}
+.wk-col.on .wk-bar{background:linear-gradient(180deg,#f4e6cc 0%,#d9b984 55%,#b8935a 100%);box-shadow:0 6px 16px #c29a6055}
+.wk-day{display:block;height:20px;line-height:22px;font-size:11px;font-weight:500;color:#a59d91;text-transform:capitalize;white-space:nowrap;overflow:visible}
+.wk-col.on .wk-day{color:#fef7ee;font-weight:600}
+.wk-tip{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;padding:4px 9px;border-radius:10px;
+  background:#f4e6cc;color:#2a2a2a;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px #00000040;z-index:2}
+.wk-tip:after{content:'';position:absolute;left:50%;top:100%;margin-left:-4px;border:4px solid transparent;border-top-color:#f4e6cc}
+.wk-tip .cents{display:none}
+.wk-col:first-child .wk-tip,.wk-col:nth-child(2) .wk-tip{left:0;transform:none}
+.wk-col:first-child .wk-tip:after,.wk-col:nth-child(2) .wk-tip:after{left:10px}
+.wk-col:last-child .wk-tip,.wk-col:nth-last-child(2) .wk-tip{left:auto;right:0;transform:none}
+.wk-col:last-child .wk-tip:after,.wk-col:nth-last-child(2) .wk-tip:after{left:auto;right:6px}
+.wk-mid{align-items:center;margin-top:12px}
+.wk-chips{flex-direction:row;gap:4px;align-self:flex-start;margin-top:4px}
+.wk-chips button{min-height:30px;min-width:40px;padding:4px 8px;border-radius:10px;font-size:13px!important}
+.wk-total{font-size:30px}
+.wk-chart{margin-top:26px;height:146px}
+.q .wk-bars{gap:4px}
+.wk-chart{margin-top:34px}
+
+/* ===== Статистика выводов — светлая тема ===== */
+:root:not([data-theme=dark]) .wk-card{color:var(--text-primary);background:radial-gradient(ellipse at 110% -10%,#eeddc466 0%,transparent 55%),var(--surface,#fff9f2);border-color:var(--theme-border,#2a2a2a14);box-shadow:0 10px 30px #2a2a2a0f}
+:root:not([data-theme=dark]) .wk-top h2{color:var(--text-primary)}
+:root:not([data-theme=dark]) .wk-total small,:root:not([data-theme=dark]) .wk-delta{color:var(--text-secondary)}
+:root:not([data-theme=dark]) .wk-delta.up b{color:var(--out)}
+:root:not([data-theme=dark]) .wk-delta.down b{color:var(--in)}
+:root:not([data-theme=dark]) .wk-chips button{background:#2a2a2a0d;color:var(--text-secondary)}
+:root:not([data-theme=dark]) .wk-chips button.on{background:#2a2a2a;color:#fef7ee}
+:root:not([data-theme=dark]) .wk-axis span,:root:not([data-theme=dark]) .wk-day{color:var(--text-secondary)}
+:root:not([data-theme=dark]) .wk-col.on .wk-day{color:var(--text-primary)}
+:root:not([data-theme=dark]) .wk-grid{border-top-color:#2a2a2a12}
+:root:not([data-theme=dark]) .wk-grid.base{border-top-color:#2a2a2a24}
+:root:not([data-theme=dark]) .wk-line{border-top-color:#8a6a3c80}
+:root:not([data-theme=dark]) .wk-bar{background:linear-gradient(180deg,#2a2a2a17,#2a2a2a0b)}
+:root:not([data-theme=dark]) .wk-col.on .wk-bar{background:linear-gradient(180deg,#e6cc9c 0%,#c9a46b 55%,#a5824d 100%);box-shadow:0 6px 16px #a5824d40}
+:root:not([data-theme=dark]) .wk-tip{background:#2a2a2a;color:#fef7ee;box-shadow:0 4px 12px #2a2a2a33}
+:root:not([data-theme=dark]) .wk-tip:after{border-top-color:#2a2a2a}
+
+/* ===== Статистика, светлая тема: вариант C — графитовая шапка, золотой столбик ===== */
+:root:not([data-theme=dark]) .wk-card{padding-top:0;background:var(--surface,#fff9f2);border:1px solid #c29a6066;box-shadow:0 14px 34px #a5824d2e}
+:root:not([data-theme=dark]) .wk-top{margin:0 -16px;padding:12px 16px;background:linear-gradient(120deg,#2a2a2a,#4d4a44);border-radius:23px 23px 0 0}
+:root:not([data-theme=dark]) .wk-top h2{color:#f4e6cc}
+:root:not([data-theme=dark]) .wk-mid{margin-top:14px}
+:root:not([data-theme=dark]) .wk-bar{background:linear-gradient(180deg,#2a2a2a1f,#2a2a2a0d)}
+:root:not([data-theme=dark]) .wk-col.on .wk-bar{background:linear-gradient(180deg,#f0d9a8 0%,#d1a964 50%,#a87d3d 100%);box-shadow:0 0 0 3px #c29a6033,0 10px 22px #a87d3d55}
+:root:not([data-theme=dark]) .wk-chips button.on{background:linear-gradient(180deg,#e6cc9c,#c9a46b);color:#2a2a2a}
+.wk-axis{width:46px}
+/* переключатели периода — в шапке справа, одинаково в обеих темах */
+.wk-top h2{flex:1}
+.wk-chips,:root:not([data-theme=dark]) .wk-chips{margin:0;align-self:center}
+.wk-chips button,:root:not([data-theme=dark]) .wk-chips button{background:#ffffff14;color:#d9d1c4}
+.wk-chips button.on,:root:not([data-theme=dark]) .wk-chips button.on{background:linear-gradient(180deg,#f4e6cc,#d1a964);color:#2a2a2a}
+.wk-total{font-size:34px}
+
+/* ===== Иконки истории: тонкий контур + яркая статусная точка (референс) ===== */
+.h-coin{width:46px;height:46px;color:#eeddc4;
+  background:radial-gradient(circle at 34% 24%,#3a3733 0%,#1f1e1c 55%,#151413 100%);
+  box-shadow:inset 0 1px 0 #eeddc455,inset 0 0 0 1px #eeddc426,0 3px 8px #2a2a2a2e}
+.h-coin:after{background:linear-gradient(160deg,#ffffff1a 0%,transparent 40%)}
+.h-coin.in,.h-coin.out,.h-coin.flag{color:#eeddc4}
+.h-coin .line-icon{width:22px;height:22px;stroke-width:1.5}
+:root[data-theme=dark] .h-coin{color:#eeddc4;
+  background:radial-gradient(circle at 34% 20%,#ffffff0d 0%,#ffffff03 60%,transparent 100%);
+  box-shadow:inset 0 1px 0 #eeddc466,inset 0 0 0 1px #eeddc41c,0 4px 12px #00000059}
+.h-dot{position:absolute;right:1px;bottom:3px;width:9px;height:9px;border-radius:50%;z-index:1;
+  box-shadow:0 0 0 2px var(--dot-ring,#f6f1e8)}
+:root[data-theme=dark] .h-dot{--dot-ring:#1c1b19}
+.h-coin.in .h-dot{background:#2fe07c;box-shadow:0 0 0 2px var(--dot-ring,#f6f1e8),0 0 8px #2fe07c}
+.h-coin.out .h-dot{background:#ff3b30;box-shadow:0 0 0 2px var(--dot-ring,#f6f1e8),0 0 8px #ff3b30}
+.h-coin.flag .h-dot{background:#ffc84a;box-shadow:0 0 0 2px var(--dot-ring,#f6f1e8),0 0 8px #ffc84a}
+:root[data-theme=dark] .h-coin.in .h-dot{box-shadow:0 0 0 2px #1c1b19,0 0 10px #2fe07ccc}
+:root[data-theme=dark] .h-coin.out .h-dot{box-shadow:0 0 0 2px #1c1b19,0 0 10px #ff3b30cc}
+:root[data-theme=dark] .h-coin.flag .h-dot{box-shadow:0 0 0 2px #1c1b19,0 0 10px #ffc84acc}
+/* контрольный вывод — мягкое золотое свечение слева */
+.h-item.flag{position:relative}
+.h-item.flag:before{content:'';position:absolute;left:-9px;top:16px;height:40px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg,transparent,#c29a60 30%,#d1a964 70%,transparent);box-shadow:0 0 8px #d1a96499}
+:root[data-theme=dark] .h-item.flag:before{background:linear-gradient(180deg,transparent,#e9c27a 30%,#ffd98a 60%,transparent);box-shadow:0 0 10px #ffcf7099,0 0 18px #ffcf7055}
+/* то же свечение — на остальных индикаторах */
+.signal-dot:not(.off){background:#2fe07c!important;box-shadow:0 0 0 2px #2fe07c33,0 0 8px #2fe07c!important}
+.signal-dot.off{background:#ff3b30!important;box-shadow:0 0 8px #ff3b30!important}
+.orbit-dot{fill:#ffd98a;filter:drop-shadow(0 0 4px #ffcf70)}
+:root[data-theme=dark] .h-item.flag:before{width:2.5px;box-shadow:0 0 10px #ffcf70cc,0 0 22px #ffcf7066}
+/* сумма в истории: $ + запятые, подпись USDT под суммой */
+.h-amt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+.h-sum{white-space:nowrap}
+.h-amt .sign{margin-right:.18em}
+.h-cur{font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--text-secondary);opacity:.75}
+.h-text strong{gap:6px;overflow:hidden}
+.h-flag{text-transform:none;letter-spacing:0;font-size:12px;padding:2px 7px;flex:none}
+.h-amt{margin-left:6px}
+.h-row{gap:12px}
+.h-text small{font-size:14px}
+.h-ctl{color:#8a6a3c;font-weight:600}
+:root[data-theme=dark] .h-ctl{color:#e9c27a}
+.h-cur{opacity:1}
+
+/* ===== Многопользовательский режим: кошельки, адреса под контролем, пользователи ===== */
+.seg-hint{margin:4px 4px 14px;font-size:13px;line-height:1.45;color:var(--text-secondary)}
+.addr-seg{display:flex;margin-bottom:12px}
+.addr-seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.seg-n{min-width:22px;height:22px;padding:0 6px;border-radius:11px;display:inline-grid;place-items:center;font-size:12px;font-weight:600;
+  background:#2a2a2a14;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.addr-seg button.selected .seg-n{background:#ffffff26;color:inherit}
+:root[data-theme=dark] .seg-n{background:#ffffff14}
+:root[data-theme=dark] .addr-seg button.selected .seg-n{background:#00000026}
+.addr-copy{min-height:0;font-size:17px!important;font-weight:600;gap:6px;color:var(--text-primary)}
+.addr-copy .line-icon{width:15px;height:15px}
+.address-list+.phone-primary,.address-list+.settings-hint,.app-empty+.phone-primary{margin-top:16px}
+.history-card .phone-primary{width:100%;margin:2px 0 14px}
+.admin-hint{margin-top:-2px}
+.user-item+.user-item{border-top:1px solid var(--theme-border,#2a2a2a10)}
+:root[data-theme=dark] .user-item+.user-item{border-top-color:#ffffff0d}
+button.recipient-row{display:flex;align-items:center;width:100%;border:0;background:none;padding:0;color:inherit;text-align:left;font:inherit}
+button.recipient-row>div{flex:1;min-width:0}
+button.recipient-row>div>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recipients-card .recipient-row{border-top:0!important}
+.user-more{display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 0 12px 52px}
+.user-more>span{flex-basis:100%;font-size:13px;color:var(--text-secondary)}
+.seg-n{color:var(--text-primary)}
+.addr-copy{padding:11px 0;margin:-11px 0}
+/* фонов 5 — в один ряд */
+.compact .background-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.compact .background-thumb{height:62px}

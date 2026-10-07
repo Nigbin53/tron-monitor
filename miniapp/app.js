@@ -1,5 +1,6 @@
-/* TRON Monitor — рабочее мини-приложение. Данные приходят из функции bot в Supabase,
-   доступ проверяется по подписи Telegram и chat_id владельца. */
+/* TRON Monitor — рабочее мини-приложение. Данные приходят из функции bot в Supabase.
+   Доступ проверяется по подписи Telegram: каждый видит только свои кошельки и адреса,
+   список всех пользователей — только владелец бота. */
 (() => {
   const API = window.TRON_API;
   const tg = window.Telegram?.WebApp;
@@ -18,15 +19,20 @@
     down:'<path d="M12 4v16m-6-6 6 6 6-6"/>',
     up:'<path d="M12 20V4m-6 6 6-6 6 6"/>',
     alert:'<path d="M5 20h14v-3H5zM7 17v-5a5 5 0 0 1 10 0v5M12 2v2M3 5l2 2m16-2-2 2"/>',
+    signal:'<circle cx="12" cy="12" r="1.8"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>',
     check:'<path d="m5 12 4 4L19 6"/>',
     eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
     close:'<path d="m6 6 12 12M6 18 18 6"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    wallet:'<path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a1 1 0 0 1-1-1z"/><path d="M4 7V6a2 2 0 0 1 2-2h10v3"/><circle cx="16" cy="13.5" r="1.2"/>',
     refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'
   };
   const icon = (n, cls='') => `<svg class="line-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[n]}</svg>`;
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const short = a => !a ? '' : a.length > 12 ? `${a.slice(0,6)}…${a.slice(-4)}` : a;
   const money = n => { const [i,f] = Math.abs(Number(n)||0).toFixed(2).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g,' ') + (f==='00' ? '' : `<span class="cents">.${f}</span>`); };
+  const usd = n => Math.round(Math.abs(Number(n)||0)).toLocaleString('en-US') + ' $';
+  const hSum = (type,n) => `<span class="h-sum"><span class="sign">${type==='in'?'+':'−'}</span>${usd(n)}</span>`;
   const amount = (type,n) => `<span class="sign">${type==='in'?'+':'−'}</span>${money(n)}`;
   const plural = (n, one, few, many) => { const m10=n%10, m100=n%100; return m10===1&&m100!==11 ? one : m10>=2&&m10<=4&&(m100<12||m100>14) ? few : many; };
   const DAY = 864e5;
@@ -39,7 +45,7 @@
   const scanUrl = id => `https://tronscan.org/#/transaction/${encodeURIComponent(id)}`;
 
   // ---------- состояние ----------
-  const state = { tab: 'home', data: null, status: 'loading', error: '', code: 0, filter: 'all', shown: 40, addOpen: false };
+  const state = { tab: 'home', data: null, status: 'loading', error: '', code: 0, filter: 'all', shown: 40, addOpen: false, open: '', wk: null, wkp: 'week', seg: 'wallets', user: '' };
   const root = document.getElementById('root');
 
   async function call(op, extra = {}) {
@@ -50,9 +56,15 @@
     return j;
   }
 
-  let loading = false;
+  let loading = null, again = false;
   async function load(manual = false) {
-    if (loading) return; loading = true;
+    // если обновление уже идёт — дождаться его и обновить ещё раз (например, сразу после добавления кошелька)
+    if (loading) { again = true; return loading; }
+    loading = loadOnce(manual);
+    try { await loading; } finally { loading = null; }
+    if (again) { again = false; await load(); }
+  }
+  async function loadOnce(manual) {
     if (manual) toast('Обновляю…');
     try {
       state.data = await call('overview');
@@ -61,7 +73,7 @@
     } catch (e) {
       if (!state.data) { state.status = 'error'; state.error = e.message; state.code = e.status || 0; }
       else toast('Не удалось обновить: ' + e.message);
-    } finally { loading = false; render(); }
+    } finally { render(); }
   }
 
   // ---------- вычисления ----------
@@ -100,81 +112,162 @@
   }
 
   // ---------- карточки ----------
-  const miniCard = t => `<div class="mini-transaction"><span class="direction ${t.type}">${icon(t.type==='in'?'down':'up')}</span><div><strong>${t.type==='in'?'Пополнение':'Вывод'}${t.flagged?'<span class="watch-mini">'+icon('alert')+'</span>':''}</strong><span>${when(t.ts)} · ${esc(short(t.who))}</span></div><span class="mini-amount">${amount(t.type,t.amount)}</span></div>`;
-  const card = t => `<article class="transaction-card ${t.flagged?'watched':''}" data-direction="${t.type}"><div class="transaction-top"><span class="direction ${t.type}">${icon(t.type==='in'?'down':'up')}</span><span>${t.type==='in'?'Пополнение':'Вывод'}</span><time>${time(t.ts)}</time></div><div class="transaction-amount">${amount(t.type,t.amount)}<small>USDT</small></div><button class="transaction-address as-link" data-copy="${esc(t.who)}" aria-label="Скопировать адрес">${t.type==='in'?'От ':'Куда '}${esc(short(t.who))}</button>${t.flagged?`<div class="watch-label">${icon('alert')}Отслеживаемый адрес</div>`:''}<div class="transaction-bottom"><span>Остаток после операции</span><strong>${money(t.balance)} <small>USDT</small></strong></div><button class="scan-button" data-open="${scanUrl(t.id)}">Открыть в TronScan ${icon('arrow')}</button></article>`;
+  // ---------- история: строка со значком-«монетой» ----------
+  const kind = t => t.type === 'in' ? 'Пополнение' : 'Вывод';
+  const coin = t => `<span class="h-coin ${t.flagged ? 'flag' : t.type}" aria-hidden="true">${icon(t.flagged ? 'signal' : t.type === 'in' ? 'down' : 'up')}<i class="h-dot"></i></span>`;
+  const hRow = (t, full = false) => {
+    const open = state.open === t.id;
+    return `<div class="h-item ${open ? 'open' : ''} ${t.flagged ? 'flag' : ''}"><button class="h-row" data-row="${esc(t.id)}" aria-expanded="${open}">${coin(t)}<span class="h-text"><strong>${kind(t)}</strong><small>${t.flagged ? '<span class="h-ctl">под контролем</span>' : esc(short(t.who))} · ${full ? time(t.ts) : when(t.ts)}</small></span><span class="h-amt ${t.type}">${hSum(t.type, t.amount)}</span></button>${open ? `<div class="h-more"><div><span>Баланс после</span><strong>${money(t.balance)} <small>USDT</small></strong></div><div><span>${t.type === 'in' ? 'Откуда' : 'Куда'}</span><button class="h-copy" data-copy="${esc(t.who)}">${esc(short(t.who))}${icon('copy')}</button></div>${state.data.wallets.length > 1 ? `<div><span>Кошелёк</span><button class="h-copy" data-copy="${esc(t.wallet)}">${esc(short(t.wallet))}${icon('copy')}</button></div>` : ''}<button class="scan-button" data-open="${scanUrl(t.id)}">Открыть в TronScan ${icon('arrow')}</button></div>` : ''}</div>`;
+  };
   const empty = text => `<div class="app-empty">${text}</div>`;
 
   // ---------- экраны ----------
   function home() {
-    const d = state.data, list = txs().slice(0, 5), alive = botAlive();
-    return `<div class="app-heading"><div><p class="phone-eyebrow">ВАШ КОШЕЛЁК</p><h1>Обзор</h1></div><span class="protocol-pill">TRC20</span></div>
-<section class="balance-card"><div class="balance-top"><span class="coin-glyph">₮</span><span>Общий баланс</span><span class="balance-network">TRON</span></div><svg class="balance-orbit" viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="103"/><path d="M39 184A103 103 0 1 1 203 155"/><circle class="orbit-dot" cx="203" cy="155" r="3"/></svg><div class="balance-number">${money(totalUsdt())}</div><div class="balance-units">USDT <span>${totalTrx().toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).replace(',','.')} TRX</span></div><div class="balance-caption"><span class="signal-dot ${alive?'':'off'}"></span>${tronError()?'Нет ответа TronGrid':alive?'Бот активен':'Бот не проверял кошелёк'}<span>Обновлено ${time(d.now)}</span></div></section>
-${d.wallets.map(w => `<button class="wallet-address" data-copy="${esc(w.address)}"><span><small>АДРЕС КОШЕЛЬКА</small>${esc(short(w.address))}</span>${icon('copy')}</button>`).join('')}
-<section class="balance-chart"><div><span class="phone-eyebrow">ДИНАМИКА БАЛАНСА</span><small>7 дней</small></div>${spark(balanceSeries())}</section>
-<div class="phone-section-heading"><h2>Последние операции</h2><span>${fmt(d.now,{day:'2-digit',month:'short'})}</span></div>
-${list.length ? `<section class="mini-transactions">${list.map(miniCard).join('')}</section><button class="phone-ghost" data-phone-page="transactions">Вся лента</button>` : empty('Операций пока нет')}`;
+    const d = state.data, list = txs().slice(0, 5), alive = botAlive(), nw = d.wallets.length;
+    const none = !nw ? `<p class="history-empty">Пока нет кошельков. Добавь кошелёк, и здесь появятся его операции.</p><button class="phone-primary" data-goto-wallets>${icon('plus')}Добавить кошелёк</button>` : '';
+    return `<div class="app-heading"><div><p class="phone-eyebrow">${nw > 1 ? `ВАШИ КОШЕЛЬКИ · ${nw}` : 'ВАШ КОШЕЛЁК'}</p><h1>Обзор</h1></div><span class="protocol-pill">TRC20</span></div>
+<section class="balance-card"><div class="balance-top"><span class="coin-glyph">₮</span><span>Общий баланс</span><span class="balance-network">TRON</span></div><svg class="balance-orbit" viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="103"/><path d="M39 184A103 103 0 1 1 203 155"/><circle class="orbit-dot" cx="203" cy="155" r="3"/></svg><div class="balance-number">${money(totalUsdt())}</div><div class="balance-units">USDT <span>${totalTrx().toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).replace(',','.')} TRX</span></div><div class="balance-caption"><span class="signal-dot ${alive?'':'off'}"></span>${tronError()?'Нет ответа TronGrid':!d.subscribed?'Уведомления выключены':alive?'Бот активен':'Бот не проверял кошелёк'}<span>Обновлено ${time(d.now)}</span></div></section>
+<section class="history-card"><div class="history-head"><h2>История</h2><button class="history-all" data-phone-page="transactions">Вся история</button></div>
+${none || (list.length ? list.map(t => hRow(t)).join('') : '<p class="history-empty">Операций пока нет</p>')}</section>`;
+  }
+
+  // ---------- статистика выводов за неделю ----------
+  const nice = v => { if (v <= 0) return 100; const e = 10 ** Math.floor(Math.log10(v)), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; };
+  const kfmt = v => { const f = (x) => String(+x.toFixed(2)).replace('.', ','); return v >= 1e6 ? f(v / 1e6) + ' млн' : v >= 1000 ? f(v / 1000) + ' тыс' : String(Math.round(v)); };
+  const PERIODS = { week: { n: 7, size: 1, title: 'неделю', chip: '7д' }, month: { n: 5, size: 6, title: '30 дней', chip: '30д' }, q: { n: 9, size: 10, title: '90 дней', chip: '90д' } };
+  function periodStats(pid) {
+    const P = PERIODS[pid], span = P.n * P.size, now = state.data.now;
+    const ago = {}; for (let i = 0; i < span * 2; i++) ago[dayKey(now - i * DAY)] = i;
+    const buckets = [...Array(P.n)].map((_, j) => { const first = (P.n - 1 - j) * P.size + P.size - 1; return { ts: now - first * DAY, end: now - (P.n - 1 - j) * P.size * DAY, sum: 0, n: 0 }; });
+    let prev = 0, flagged = 0;
+    for (const t of txs()) {
+      if (t.type !== 'out') continue;
+      const i = ago[dayKey(t.ts)]; if (i === undefined) continue;
+      if (i < span) { const b = buckets[P.n - 1 - Math.floor(i / P.size)]; b.sum += t.amount; b.n++; if (t.flagged) flagged += t.amount; }
+      else prev += t.amount;
+    }
+    return { P, buckets, total: buckets.reduce((s, b) => s + b.sum, 0), count: buckets.reduce((s, b) => s + b.n, 0), prev, flagged };
+  }
+  function weekCard() {
+    const pid = state.wkp || 'week', w = periodStats(pid), B = w.buckets, max = Math.max(1e6, nice(Math.max(...B.map(b => b.sum))));
+    const best = B.reduce((m, b, i) => b.sum > B[m].sum ? i : m, B.length - 1);
+    const sel = Math.min(state.wk ?? best, B.length - 1), sd = B[sel];
+    const pct = v => Math.max(0, Math.min(100, v / max * 100));
+    const delta = w.prev > 0 ? Math.round((w.total - w.prev) / w.prev * 100) : null;
+    const prevWord = { week: 'прошлой неделе', month: 'прошлым 30 дням', q: 'прошлым 90 дням' }[pid];
+    const deltaHtml = delta === null ? `<span class="wk-delta">${w.count} ${plural(w.count,'вывод','вывода','выводов')} за ${w.P.title}</span>`
+      : `<span class="wk-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}"><b>${delta >= 200 ? '×' + (w.total / w.prev).toFixed(1).replace('.0','').replace('.',',') : (delta > 0 ? '+' : delta < 0 ? '−' : '') + Math.abs(delta) + '%'}</b> к ${prevWord}</span>`;
+    const dm = ts => fmt(ts, { day: '2-digit', month: '2-digit' });
+    const label = (b, i) => pid === 'week' ? (i === B.length - 1 ? 'Сг' : fmt(b.ts, { weekday: 'short' }).replace('.', '').slice(0, 2)) : pid === 'month' ? dm(b.ts) : (i % 3 === 2 ? dm(b.end) : '');
+    const ticks = [1, .5, 0].map(f => `<span style="bottom:${f * 100}%">${kfmt(max * f)}</span>`).join('');
+    const bars = B.map((b, i) => {
+      const on = i === sel, desc = pid === 'week' ? fmt(b.ts,{day:'numeric',month:'long'}) : `${dm(b.ts)}–${dm(b.end)}`;
+      return `<button class="wk-col ${on ? 'on' : ''}" data-wk="${i}" aria-label="${desc}: ${b.sum.toLocaleString('ru-RU')} USDT" aria-pressed="${on}"><span class="wk-wrap"><span class="wk-bar" style="height:${Math.max(pct(b.sum), 2.5)}%">${on ? `<span class="wk-tip">${money(b.sum)}</span>` : ''}</span></span><span class="wk-day">${label(b, i)}</span></button>`;
+    }).join('');
+    const chips = Object.entries(PERIODS).map(([id, P]) => `<button class="${id === pid ? 'on' : ''}" data-wkp="${id}" aria-pressed="${id === pid}">${P.chip}</button>`).join('');
+    return `<section class="wk-card ${pid}">
+<div class="wk-top"><span class="wk-icon">${icon('up')}</span><h2>Выводы</h2><div class="wk-chips" role="group" aria-label="Период">${chips}</div></div>
+<div class="wk-mid"><div><div class="wk-total">${money(w.total)}<small>USDT</small></div>${deltaHtml}</div></div>
+<div class="wk-chart"><div class="wk-axis">${ticks}</div><div class="wk-plot"><div class="wk-area"><span class="wk-grid" style="bottom:100%"></span><span class="wk-grid" style="bottom:50%"></span><span class="wk-grid base" style="bottom:0"></span><span class="wk-line" style="bottom:${pct(sd.sum)}%"></span></div><div class="wk-bars">${bars}</div></div></div>
+</section>`;
   }
 
   function feed() {
     const all = txs().filter(t => state.filter === 'all' || t.type === state.filter);
     const list = all.slice(0, state.shown);
     const today = dayKey(state.data.now), yesterday = dayKey(state.data.now - DAY);
-    let html = '', lastDay = '';
-    for (const t of list) {
-      const k = dayKey(t.ts);
-      if (k !== lastDay) { lastDay = k; const lbl = dayLong(t.ts); html += `<div class="day-label">${k===today?`СЕГОДНЯ <span>${lbl}</span>`:k===yesterday?`ВЧЕРА <span>${lbl}</span>`:lbl}</div>`; }
-      html += card(t);
-    }
+    const groups = [];
+    for (const t of list) { const k = dayKey(t.ts); if (!groups.length || groups.at(-1).k !== k) groups.push({ k, ts: t.ts, items: [] }); groups.at(-1).items.push(t); }
+    const html = groups.map(g => {
+      const lbl = fmt(g.ts, {day:'numeric', month:'long'});
+      const title = g.k === today ? 'Сегодня' : g.k === yesterday ? 'Вчера' : lbl;
+      const sum = g.items.reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
+      return `<section class="history-card"><div class="history-head"><h2>${title}</h2><span class="history-meta">${g.k === today || g.k === yesterday ? lbl : g.items.length + ' ' + plural(g.items.length,'операция','операции','операций')}</span></div>${g.items.map(t => hRow(t, true)).join('')}</section>`;
+    }).join('');
     const f = (id, name) => `<button class="${state.filter===id?'selected':''}" data-filter="${id}">${name}</button>`;
-    return `<div class="app-heading"><div><p class="phone-eyebrow">ИСТОРИЯ КОШЕЛЬКА</p><h1>Транзакции</h1></div><button class="round-control" data-refresh aria-label="Обновить">${icon('refresh')}</button></div>
-<div class="phone-filters" role="group" aria-label="Фильтр транзакций">${f('all','Все')}${f('in','Входящие')}${f('out','Исходящие')}</div>
-${list.length ? `<div class="transaction-feed">${html}</div>` : empty('Здесь пока пусто')}
+    return `<div class="app-heading"><div><p class="phone-eyebrow">ВСЕ ОПЕРАЦИИ</p><h1>История</h1></div><button class="round-control" data-refresh aria-label="Обновить">${icon('refresh')}</button></div>
+${weekCard()}
+<div class="phone-filters" role="group" aria-label="Фильтр истории">${f('all','Все')}${f('in','Пополнения')}${f('out','Выводы')}</div>
+${list.length ? `<div class="history-feed">${html}</div>` : empty('Здесь пока пусто')}
 ${all.length > state.shown ? '<button class="phone-ghost" data-more>Показать ещё</button>' : ''}
 ${state.data.truncated && all.length <= state.shown ? '<p class="settings-hint">Показаны последние 200 операций каждого кошелька.</p>' : ''}`;
   }
 
-  function addresses() {
-    const d = state.data, cutoff = d.now - 30 * DAY, all = txs();
+  const addForm = (kind) => `<form class="add-form" data-kind="${kind}"><label for="new-address">${kind === 'wallet' ? 'Адрес кошелька TRON' : 'Адрес TRON для контроля'}</label><input id="new-address" name="address" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="T…" maxlength="40" required><div><button type="button" class="phone-ghost" data-add-toggle>Отмена</button><button type="submit" class="phone-primary">${icon('check')}Добавить</button></div></form>`;
+  const addButton = (kind, label, full, limit) => state.addOpen === kind ? addForm(kind)
+    : full ? `<p class="settings-hint">Максимум ${limit}. Чтобы добавить новый, убери ненужный.</p>`
+    : `<button class="phone-primary" data-add-toggle="${kind}">${icon('plus')}${label}</button>`;
+
+  function walletsView() {
+    const d = state.data, ws = d.wallets, lim = d.limits?.wallets || 5;
+    const card = (w, i) => `<article class="address-card wallet-card"><div class="address-card-top"><span class="address-monogram">${String(i+1).padStart(2,'0')}</span><div><h2><button class="h-copy addr-copy" data-copy="${esc(w.address)}">${esc(short(w.address))}${icon('copy')}</button></h2><p>${w.error ? 'Нет ответа TronGrid' : (w.trx || 0).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).replace(',','.') + ' TRX'}</p></div><button class="tiny-icon" data-unwatch="${esc(w.address)}" aria-label="Убрать кошелёк ${esc(short(w.address))}">${icon('close')}</button></div><div class="address-card-bottom"><span>Баланс</span><strong>${w.error ? '—' : money(w.usdt)}<small>USDT</small></strong></div></article>`;
+    return `<p class="seg-hint">Бот следит за этими кошельками и присылает тебе пополнения и выводы. Список видишь только ты.</p>
+${ws.length ? `<div class="address-list">${ws.map(card).join('')}</div>` : empty('Кошельков нет. Добавь адрес кошелька TRON, за которым нужно следить.')}
+${addButton('wallet', 'Добавить кошелёк', ws.length >= lim, `${lim} ${plural(lim,'кошелёк','кошелька','кошельков')}`)}`;
+  }
+
+  function flagsView() {
+    const d = state.data, cutoff = d.now - 30 * DAY, all = txs(), lim = d.limits?.flags || 30;
     const stats = d.flagged.map(a => { const out = all.filter(t => t.flagged && t.who === a); const r = out.filter(t => t.ts >= cutoff); return { a, count: r.length, total: r.reduce((s, t) => s + t.amount, 0), last: out[0] }; });
     const total = stats.reduce((s, x) => s + x.total, 0);
     const lastOut = all.find(t => t.flagged);
     const n = d.flagged.length;
-    return `<div class="app-heading"><div><p class="phone-eyebrow">КОНТРОЛЬ ВЫВОДОВ</p><h1>Адреса</h1></div><span class="protocol-pill">${n} ${plural(n,'адрес','адреса','адресов')}</span></div>
-<section class="withdrawal-summary"><div class="phone-eyebrow">ВЫВОДЫ ЗА 30 ДНЕЙ</div><div class="withdrawal-total">${money(total)}<small>USDT</small></div>${spark(flaggedSeries(), true, 'Выводы на отслеживаемые адреса за 7 дней')}<div class="summary-bottom"><span>На отслеживаемые адреса</span>${icon('eye')}</div></section>
-<div class="phone-section-heading"><h2>Список адресов</h2><span>Всего ${n}</span></div>
-${n ? `<div class="address-list">${stats.map((s, i) => `<article class="address-card"><div class="address-card-top"><span class="address-monogram">${String(i+1).padStart(2,'0')}</span><div><h2>${esc(short(s.a))}</h2><p>${s.last ? 'Последний вывод ' + fmt(s.last.ts,{day:'2-digit',month:'short'}) + ', ' + time(s.last.ts) : 'Выводов пока не было'}</p></div><button class="tiny-icon" data-unflag="${esc(s.a)}" aria-label="Убрать адрес ${esc(short(s.a))}">${icon('close')}</button></div><div class="address-card-bottom"><span>${s.count} ${plural(s.count,'операция','операции','операций')} за 30 дней</span><strong>${money(s.total)}<small>USDT</small></strong></div></article>`).join('')}</div>` : empty('Добавь адрес, и выводы на него будут приходить с 🚨')}
+    return `<p class="seg-hint">Если с твоего кошелька выведут деньги на такой адрес, придёт отдельное уведомление 🚨. Список видишь только ты.</p>
+${n ? `<section class="withdrawal-summary"><div class="phone-eyebrow">ВЫВОДЫ ЗА 30 ДНЕЙ</div><div class="withdrawal-total">${money(total)}<small>USDT</small></div>${spark(flaggedSeries(), true, 'Выводы на адреса под контролем за 7 дней')}<div class="summary-bottom"><span>На адреса под контролем</span>${icon('eye')}</div></section>
+<div class="address-list">${stats.map((s, i) => `<article class="address-card"><div class="address-card-top"><span class="address-monogram">${String(i+1).padStart(2,'0')}</span><div><h2><button class="h-copy addr-copy" data-copy="${esc(s.a)}">${esc(short(s.a))}${icon('copy')}</button></h2><p>${s.last ? 'Последний вывод ' + fmt(s.last.ts,{day:'2-digit',month:'short'}) + ', ' + time(s.last.ts) : 'Выводов пока не было'}</p></div><button class="tiny-icon" data-unflag="${esc(s.a)}" aria-label="Убрать адрес ${esc(short(s.a))}">${icon('close')}</button></div><div class="address-card-bottom"><span>${s.count} ${plural(s.count,'операция','операции','операций')} за 30 дней</span><strong>${money(s.total)}<small>USDT</small></strong></div></article>`).join('')}</div>` : empty('Добавь адрес, и выводы на него будут приходить с 🚨')}
 ${lastOut ? `<div class="withdrawal-alert">${icon('alert')}<div><span>Последний вывод</span><strong>${amount('out', lastOut.amount)} <small>USDT</small></strong><p>${esc(short(lastOut.who))} · ${fmt(lastOut.ts,{day:'2-digit',month:'short'})}, ${time(lastOut.ts)}</p></div></div>` : ''}
-${state.addOpen ? `<form class="add-form"><label for="new-address">Адрес TRON</label><input id="new-address" name="address" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="T…" maxlength="40" required><div><button type="button" class="phone-ghost" data-add-toggle>Отмена</button><button type="submit" class="phone-primary">${icon('check')}Добавить</button></div></form>` : `<button class="phone-primary" data-add-toggle>${icon('plus')}Добавить адрес</button>`}`;
+${addButton('flag', 'Добавить адрес', n >= lim, `${lim} ${plural(lim,'адрес','адреса','адресов')}`)}`;
+  }
+
+  function addresses() {
+    const d = state.data, seg = state.seg;
+    const b = (id, name, n) => `<button class="${seg === id ? 'selected' : ''}" data-seg="${id}" aria-pressed="${seg === id}">${name}<span class="seg-n">${n}</span></button>`;
+    return `<div class="app-heading"><div><p class="phone-eyebrow">ЧТО ОТСЛЕЖИВАЕТ БОТ</p><h1>Адреса</h1></div></div>
+<div class="phone-filters addr-seg" role="group" aria-label="Раздел">${b('wallets', 'Кошельки', d.wallets.length)}${b('flags', 'Под контролем', d.flagged.length)}</div>
+${seg === 'wallets' ? walletsView() : flagsView()}`;
+  }
+
+  function usersBlock() {
+    const d = state.data; if (!d.isAdmin) return '';
+    const owners = new Set((d.owners || []).map(String));
+    const users = [...(d.users || [])];
+    const rank = u => String(u.chat_id) === String(d.me) ? 0 : u.status === 'active' ? 1 : 2;
+    users.sort((a, b) => rank(a) - rank(b));
+    const statusText = { active: 'Активен', stopped: 'Отписался', blocked: 'Заблокировал' };
+    const active = users.filter(u => u.status === 'active').length;
+    const row = u => {
+      const id = String(u.chat_id), me = id === String(d.me), open = state.user === id;
+      const name = me ? 'Вы' : (u.name || 'Без имени'), ws = u.wallets || [];
+      return `<div class="user-item ${open ? 'open' : ''}"><button class="recipient-row ${u.status!=='active'?'inactive':''}" data-user="${esc(id)}" aria-expanded="${open}"><span class="recipient-avatar">${esc(name.slice(0,1).toUpperCase())}</span><div><strong>${esc(name)}${owners.has(id) && !me ? ' 👑' : ''}</strong><span>${u.username ? '@' + esc(u.username) : esc(id)} · ${ws.length} ${plural(ws.length,'кошелёк','кошелька','кошельков')} · 🚨 ${u.flags || 0}</span></div><span class="recipient-status">${statusText[u.status] || 'Активен'}</span></button>${open ? `<div class="user-more">${ws.length ? ws.map(a => `<button class="h-copy" data-copy="${esc(a)}">${esc(short(a))}${icon('copy')}</button>`).join('') : '<span>Кошельков нет</span>'}<span>С нами с ${u.joined_at ? fmt(Date.parse(u.joined_at), {day:'2-digit', month:'short', year:'numeric'}) : '—'} · id ${esc(id)}</span></div>` : ''}</div>`;
+    };
+    const c = d.counts || {};
+    return `<div class="phone-section-heading"><h2>Пользователи</h2><span>${active} из ${users.length} активны</span></div>
+<p class="seg-hint admin-hint">👑 Этот раздел видишь только ты. Кошельков под наблюдением: ${c.wallets ?? 0}.</p>
+<div class="recipients-card">${users.length ? users.map(row).join('') : '<p class="history-empty">Пока никого</p>'}</div>`;
   }
 
   function settings() {
-    const d = state.data, s = d.settings, owners = new Set(d.owners.map(String));
+    const d = state.data, s = d.settings;
     const max = Math.max(1000, Math.ceil(s.min_amount / 100) * 100);
-    const users = [...d.users];
-    for (const o of owners) if (!users.some(u => String(u.chat_id) === o)) users.unshift({ chat_id: o, name: '', status: 'active' });
-    const rank = u => owners.has(String(u.chat_id)) ? 0 : u.status === 'active' ? 1 : 2;
-    users.sort((a, b) => rank(a) - rank(b));
-    const statusText = { active: 'Активен', stopped: 'Отписался', blocked: 'Заблокировал' };
-    const toggle = (key, label) => `<label class="toggle-row"><span>${label}</span><input type="checkbox" role="switch" data-setting="${key}" aria-label="${label}" ${s[key]?'checked':''}><span class="switch-track" aria-hidden="true"></span></label>`;
-    const active = users.filter(u => u.status === 'active').length;
+    const toggle = (key, label, on = s[key], attr = `data-setting="${key}"`) => `<label class="toggle-row"><span>${label}</span><input type="checkbox" role="switch" ${attr} aria-label="${label}" ${on?'checked':''}><span class="switch-track" aria-hidden="true"></span></label>`;
     const alive = botAlive();
-    return `<div class="app-heading"><div><p class="phone-eyebrow">ПАРАМЕТРЫ МОНИТОРИНГА</p><h1>Настройки</h1></div></div>
+    return `<div class="app-heading"><div><p class="phone-eyebrow">ТВОИ ПАРАМЕТРЫ</p><h1>Настройки</h1></div></div>
 <div class="phone-appearance-heading"><h2>Оформление</h2><span>На этом устройстве</span></div><section class="phone-appearance">${TronAppearance.controls(true)}</section>
-<div class="phone-section-heading"><h2>Порог уведомлений</h2></div><section class="threshold-card"><span class="phone-eyebrow">МИНИМАЛЬНАЯ СУММА</span><div class="threshold-value"><output>${s.min_amount}</output><small>USDT</small></div><input type="range" min="0" max="${max}" step="10" value="${s.min_amount}" data-threshold aria-label="Минимальная сумма USDT" style="--range:${s.min_amount / max * 100}%"><div class="range-labels"><span>0 USDT</span><span>${money(max)} USDT</span></div></section>
-<div class="phone-section-heading"><h2>Уведомления</h2></div><div class="notification-card">${toggle('notify_in','Пополнения')}${toggle('notify_out','Выводы')}${toggle('notify_flagged','Отслеживаемые адреса 🚨')}</div>
-<p class="settings-hint">Выводы на отслеживаемые адреса приходят всегда, даже ниже порога.</p>
-<div class="phone-section-heading"><h2>Получатели</h2><span>${active} ${plural(active,'человек','человека','человек')}</span></div>
-<div class="recipients-card">${users.map(u => { const name = owners.has(String(u.chat_id)) ? 'Вы' : (u.name || 'Без имени'); return `<div class="recipient-row ${u.status!=='active'?'inactive':''}"><span class="recipient-avatar">${esc(name.slice(0,1).toUpperCase())}</span><div><strong>${esc(name)}</strong><span>${u.username ? '@' + esc(u.username) : esc(u.chat_id)}</span></div><span class="recipient-status">${statusText[u.status] || 'Активен'}</span></div>`; }).join('')}<button class="add-recipient" data-hint="Чтобы добавить получателя, пусть он откроет бота и напишет /start">${icon('plus')}Добавить получателя</button></div>
+<div class="phone-section-heading"><h2>Уведомления</h2></div><div class="notification-card">${toggle('subscribed', 'Присылать в Telegram', d.subscribed, 'data-subscribe')}${d.subscribed ? toggle('notify_in','Пополнения') + toggle('notify_out','Выводы') + toggle('notify_flagged','Адреса под контролем 🚨') : ''}</div>
+${d.subscribed ? `<p class="settings-hint">Выводы на адреса под контролем приходят всегда, даже ниже порога.</p>
+<div class="phone-section-heading"><h2>Порог уведомлений</h2></div><section class="threshold-card"><span class="phone-eyebrow">МИНИМАЛЬНАЯ СУММА</span><div class="threshold-value"><output>${s.min_amount}</output><small>USDT</small></div><input type="range" min="0" max="${max}" step="10" value="${s.min_amount}" data-threshold aria-label="Минимальная сумма USDT" style="--range:${s.min_amount / max * 100}%"><div class="range-labels"><span>0 USDT</span><span>${money(max)} USDT</span></div></section>`
+  : '<p class="settings-hint">Уведомления выключены. Кошельки и адреса сохранены, включить можно в любой момент.</p>'}
+${usersBlock()}
 <section class="bot-card"><span class="bot-icon">${icon(alive?'check':'alert')}</span><div><strong>${alive?'Бот активен':'Бот не отвечает'}</strong><span>${d.meta?.last_poll ? 'Последняя проверка ' + time(d.meta.last_poll * 1000) : 'Проверок ещё не было'}</span></div><span class="signal-dot ${alive?'':'off'}"></span></section>`;
   }
 
   function splash() {
     if (state.status === 'loading') return `<div class="app-splash"><span class="coin-glyph">₮</span><p>Загрузка…</p></div>`;
-    const text = !initData ? 'Откройте приложение из Telegram: кнопка меню в чате с ботом.' : state.code === 403 ? 'Приложение доступно только владельцу бота.' : esc(state.error) || 'Не удалось загрузить данные.';
-    return `<div class="app-splash"><span class="coin-glyph">₮</span><p>${text}</p>${initData && state.code !== 403 ? '<button class="phone-primary" data-retry>Повторить</button>' : ''}</div>`;
+    const text = !initData ? 'Откройте приложение из Telegram: кнопка меню в чате с ботом.' : state.code === 401 ? 'Сессия устарела. Закройте и откройте приложение заново.' : esc(state.error) || 'Не удалось загрузить данные.';
+    return `<div class="app-splash"><span class="coin-glyph">₮</span><p>${text}</p>${initData && state.code !== 401 ? '<button class="phone-primary" data-retry>Повторить</button>' : ''}</div>`;
   }
 
-  const nav = () => `<nav class="phone-nav" aria-label="Разделы">${[['home','home','Главная'],['transactions','list','Лента'],['addresses','user','Адреса'],['settings','settings','Настройки']].map(([id,i,n])=>`<button class="phone-tab ${state.tab===id?'active':''}" data-phone-page="${id}" ${state.tab===id?'aria-current="page"':''}>${icon(i)}<span>${n}</span></button>`).join('')}</nav>`;
+  const nav = () => `<nav class="phone-nav" aria-label="Разделы">${[['home','home','Главная'],['transactions','clock','История'],['addresses','user','Адреса'],['settings','settings','Настройки']].map(([id,i,n])=>`<button class="phone-tab ${state.tab===id?'active':''}" data-phone-page="${id}" ${state.tab===id?'aria-current="page"':''}>${icon(i)}<span>${n}</span></button>`).join('')}</nav>`;
 
   function render(keepScroll = true) {
     const prev = document.getElementById('content');
@@ -183,14 +276,17 @@ ${state.addOpen ? `<form class="add-form"><label for="new-address">Адрес TR
     const inner = ready ? ({ home, transactions: feed, addresses, settings })[state.tab]() : splash();
     root.innerHTML = `<div class="phone" data-screen="${state.tab}"><div class="phone-content ${state.tab}" id="content">${inner}</div>${ready ? nav() : ''}<div class="phone-toast" role="status"></div></div>`;
     document.getElementById('content').scrollTop = top;
+    if (Date.now() < toastUntil) { const t = root.querySelector('.phone-toast'); t.textContent = toastMsg; t.classList.add('visible'); }
     const input = root.querySelector('#new-address'); if (input) input.focus();
   }
 
-  let toastTimer;
+  // всплывашка переживает перерисовку экрана
+  let toastTimer, toastMsg = '', toastUntil = 0;
   function toast(msg) {
+    toastMsg = msg; toastUntil = Date.now() + 3200;
     const t = root.querySelector('.phone-toast'); if (!t) return;
     t.textContent = msg; t.classList.add('visible');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('visible'), 3200);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => root.querySelector('.phone-toast')?.classList.remove('visible'), 3200);
   }
   const confirmBox = (msg) => new Promise(res => { if (tg?.showConfirm && tg.isVersionAtLeast?.('6.2')) tg.showConfirm(msg, ok => res(ok)); else res(window.confirm(msg)); });
   const haptic = (kind = 'light') => { try { tg?.HapticFeedback?.impactOccurred(kind); } catch {} };
@@ -198,20 +294,36 @@ ${state.addOpen ? `<form class="add-form"><label for="new-address">Адрес TR
   // ---------- действия ----------
   root.addEventListener('click', async e => {
     const el = e.target.closest('button, [data-copy], [data-open]'); if (!el) return;
-    if (el.dataset.phonePage) { state.tab = el.dataset.phonePage; state.addOpen = false; haptic(); render(false); return; }
+    if (el.dataset.phonePage) { state.tab = el.dataset.phonePage; state.addOpen = false; state.open = ''; state.user = ''; haptic(); render(false); return; }
+    if ('gotoWallets' in el.dataset) { state.tab = 'addresses'; state.seg = 'wallets'; state.addOpen = 'wallet'; haptic(); render(false); return; }
+    if (el.dataset.seg) { state.seg = el.dataset.seg; state.addOpen = false; haptic(); render(false); return; }
+    if (el.dataset.user) { state.user = state.user === el.dataset.user ? '' : el.dataset.user; haptic(); render(); return; }
     if (el.dataset.copy) { const a = el.dataset.copy; try { await navigator.clipboard.writeText(a); toast('Адрес скопирован'); } catch { toast(a); } return; }
     if (el.dataset.open) { if (tg?.openLink) tg.openLink(el.dataset.open); else window.open(el.dataset.open, '_blank', 'noopener'); return; }
     if (el.dataset.filter) { state.filter = el.dataset.filter; state.shown = 40; render(false); return; }
     if ('more' in el.dataset) { state.shown += 40; render(); return; }
     if ('refresh' in el.dataset) { load(true); return; }
     if ('retry' in el.dataset) { state.status = 'loading'; render(); load(); return; }
-    if ('addToggle' in el.dataset) { state.addOpen = !state.addOpen; render(); return; }
-    if (el.dataset.hint) { toast(el.dataset.hint); return; }
+    if (el.dataset.wkp) { state.wkp = el.dataset.wkp; state.wk = null; haptic('light'); render(); return; }
+    if (el.dataset.wk) { state.wk = Number(el.dataset.wk); haptic('light'); render(); return; }
+    if (el.dataset.row) { state.open = state.open === el.dataset.row ? '' : el.dataset.row; haptic(); render(); return; }
+    if ('addToggle' in el.dataset) { state.addOpen = el.dataset.addToggle || false; render(); return; }
     if (el.dataset.unflag) {
       const a = el.dataset.unflag;
       if (!(await confirmBox(`Убрать ${short(a)} из отслеживаемых?`))) return;
       try { const r = await call('flag_remove', { address: a }); state.data.flagged = r.flagged; haptic('medium'); render(); toast('Адрес убран'); }
       catch (err) { toast(err.message); }
+      return;
+    }
+    if (el.dataset.unwatch) {
+      const a = el.dataset.unwatch;
+      if (!(await confirmBox(`Перестать следить за кошельком ${short(a)}? Уведомления по нему приходить не будут.`))) return;
+      try {
+        await call('wallet_remove', { address: a });
+        state.data.wallets = state.data.wallets.filter(w => w.address !== a);
+        state.data.transfers = state.data.transfers.filter(t => t.wallet !== a);
+        haptic('medium'); render(); toast('Кошелёк убран');
+      } catch (err) { toast(err.message); }
     }
   });
 
@@ -219,11 +331,18 @@ ${state.addOpen ? `<form class="add-form"><label for="new-address">Адрес TR
     if (!e.target.matches('.add-form')) return;
     e.preventDefault();
     const btn = e.target.querySelector('[type=submit]'); btn.disabled = true;
-    const address = e.target.address.value.trim();
+    const address = e.target.address.value.trim(), kind = e.target.dataset.kind;
     try {
-      const r = await call('flag_add', { address });
-      state.data.flagged = r.flagged; state.addOpen = false; haptic('medium'); render();
-      toast(r.added ? 'Адрес добавлен. Выводы на него придут с 🚨' : 'Этот адрес уже в списке');
+      if (kind === 'wallet') {
+        const r = await call('wallet_add', { address });
+        state.addOpen = false; haptic('medium');
+        toast(r.added ? 'Кошелёк добавлен' : 'Этот кошелёк уже в списке');
+        await load();
+      } else {
+        const r = await call('flag_add', { address });
+        state.data.flagged = r.flagged; state.addOpen = false; haptic('medium'); render();
+        toast(r.added ? 'Адрес добавлен. Выводы на него придут с 🚨' : 'Этот адрес уже в списке');
+      }
     } catch (err) { btn.disabled = false; toast(err.message); }
   });
 
@@ -240,6 +359,11 @@ ${state.addOpen ? `<form class="add-form"><label for="new-address">Адрес TR
     const i = e.target;
     if (i.matches('[data-threshold]')) saveSettings({ min_amount: Number(i.value) });
     else if (i.dataset.setting) saveSettings({ [i.dataset.setting]: i.checked });
+    else if ('subscribe' in i.dataset) {
+      call('subscribe', { on: i.checked })
+        .then(r => { state.data.subscribed = r.subscribed; render(); toast(r.subscribed ? 'Уведомления включены' : 'Уведомления выключены'); })
+        .catch(err => { toast(err.message); load(); });
+    }
   });
   // тема/фон меняются в appearance.js; перерисовка не нужна, только обновить выделение
   document.addEventListener('mineral-appearance-change', () => TronAppearance.updateControls());

@@ -3,9 +3,10 @@ window.TronAppearance = (() => {
   const KEY = 'tron-mineral-appearance-v1';
   const backgrounds = [
     {id:'porcelain',name:'Фарфор',description:'Мягкий ровный свет'},
-    {id:'shell',name:'Перламутр',description:'Тёплая сатиновая диагональ'},
     {id:'nickel',name:'Никель',description:'Холодные металлические волны'},
-    {id:'graphite',name:'Графит',description:'Матовая минеральная текстура'}
+    {id:'orbit',name:'Орбита',description:'Тонкие дуги цвета шампанского'},
+    {id:'eclipse',name:'Затмение',description:'Мягкий свет по краю силуэта'},
+    {id:'stardust',name:'Звёзды',description:'Редкие точки в минеральном свечении'}
   ];
   const valid = value => ({theme:value?.theme==='dark'?'dark':'light',background:backgrounds.some(b=>b.id===value?.background)?value.background:'porcelain'});
   let stored;
